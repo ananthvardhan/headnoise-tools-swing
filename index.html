@@ -3,67 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Accordion — Type Tool</title>
+<title>Swing — Headnoise by Ananth Vardhan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@900&family=Noto+Sans+Telugu:wght@900&family=Noto+Sans+Devanagari:wght@900&family=Noto+Sans+Malayalam:wght@900&family=Noto+Sans+Tamil:wght@900&family=Noto+Sans+Kannada:wght@900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@700&family=Barlow+Condensed:wght@900&family=Russo+One&family=Teko:wght@700&family=Anton&family=Noto+Sans:wght@900&family=Noto+Sans+Telugu:wght@900&family=Noto+Sans+Devanagari:wght@900&family=Noto+Sans+Malayalam:wght@900&family=Noto+Sans+Tamil:wght@900&family=Noto+Sans+Kannada:wght@900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{
   background:#000;color:#fff;
   font-family:'Space Mono',monospace;font-size:11px;
   display:flex;flex-direction:column;height:100vh;overflow:hidden;
+  user-select:none;
 }
 header{
   display:flex;justify-content:space-between;align-items:center;
-  padding:7px 14px;border-bottom:1px solid #1a1a1a;flex-shrink:0;
+  padding:7px 14px;border-bottom:1px solid #222;flex-shrink:0;
   position:relative;z-index:10;
 }
-.hl{font-size:11px;color:#333;}
-.hc{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:0.12em;color:#666;}
-.main{display:flex;flex:1;overflow:hidden;}
-canvas#c{display:block;flex:1;min-width:0;}
+.hl{font-size:11px;color:#777;letter-spacing:0.08em;}
+.hc{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:0.14em;color:#ddd;}
+.hr{display:flex;gap:8px;align-items:center;}
+.hbtn{
+  padding:3px 10px;font-size:10px;background:none;border:1px solid #333;
+  color:#aaa;cursor:pointer;font-family:'Space Mono',monospace;transition:all 0.1s;
+  letter-spacing:0.06em;
+}
+.hbtn:hover{border-color:#3af;color:#3af;}
+.hbtn.active{background:#3af;border-color:#3af;color:#000;}
+.hbtn.danger:hover{border-color:#f55;color:#f55;}
+kbd{
+  display:inline-block;padding:1px 5px;background:#1a1a1a;border:1px solid #333;
+  border-radius:2px;font-size:9px;color:#888;letter-spacing:0;
+}
+
+.main{display:flex;flex:1;overflow:hidden;position:relative;}
+
+#canvasWrap{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  background:#000;overflow:hidden;position:relative;min-width:0;
+}
+#canvasWrap.freeform canvas{width:100%!important;height:100%!important;}
+#canvasWrap.fixed canvas{display:block;box-shadow:0 0 0 1px #222;}
+canvas#c{display:block;}
+
+/* Drop zone overlay */
+#dropOverlay{
+  display:none;position:absolute;inset:0;background:rgba(51,170,255,0.08);
+  border:2px dashed #3af;z-index:5;pointer-events:none;
+  align-items:center;justify-content:center;
+  font-size:14px;color:#3af;letter-spacing:0.1em;
+}
+#dropOverlay.active{display:flex;}
+
 .panel{
-  width:260px;flex-shrink:0;background:#080808;
-  border-left:1px solid #1a1a1a;overflow-y:auto;overflow-x:hidden;padding-bottom:24px;
+  width:272px;flex-shrink:0;background:#111;
+  border-left:1px solid #2a2a2a;overflow-y:auto;overflow-x:hidden;padding-bottom:40px;
 }
 .panel::-webkit-scrollbar{width:3px;}
-.panel::-webkit-scrollbar-thumb{background:#1e1e1e;}
-.sec{padding:7px 10px 3px;font-size:10px;color:#3a3a3a;letter-spacing:0.12em;border-top:1px solid #111;margin-top:2px;}
+.panel::-webkit-scrollbar-thumb{background:#333;}
+
+.sec{
+  padding:8px 12px 4px;font-size:9px;color:#666;letter-spacing:0.18em;
+  border-top:1px solid #1e1e1e;margin-top:2px;text-transform:uppercase;
+}
 .sec:first-child{border-top:none;margin-top:0;}
-.row{display:flex;align-items:center;padding:2px 10px;gap:6px;min-height:22px;}
-.row label{color:#444;font-size:10px;min-width:88px;flex-shrink:0;}
-input[type=range]{flex:1;height:2px;appearance:none;background:#1a1a1a;outline:none;cursor:pointer;min-width:0;}
-input[type=range]::-webkit-slider-thumb{appearance:none;width:10px;height:10px;background:#3af;cursor:pointer;}
-input[type=range]::-moz-range-thumb{width:10px;height:10px;background:#3af;border:none;}
-.val{font-size:10px;min-width:32px;text-align:right;color:#555;flex-shrink:0;}
-select{flex:1;background:#0e0e0e;border:1px solid #1a1a1a;color:#888;font-family:'Space Mono',monospace;font-size:10px;padding:2px 4px;outline:none;cursor:pointer;}
-input[type=text]{flex:1;background:#0e0e0e;border:1px solid #1a1a1a;color:#bbb;font-family:'Space Mono',monospace;font-size:11px;padding:2px 5px;outline:none;min-width:0;}
+
+.row{display:flex;align-items:center;padding:3px 12px;gap:8px;min-height:24px;}
+.row label{color:#ccc;font-size:10px;min-width:82px;flex-shrink:0;}
+
+input[type=range]{
+  flex:1;height:2px;appearance:none;background:#2e2e2e;outline:none;cursor:pointer;min-width:0;
+}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:11px;height:11px;background:#3af;cursor:pointer;border-radius:0;}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;background:#3af;border:none;border-radius:0;}
+input[type=range]:hover::-webkit-slider-thumb{background:#6cf;}
+
+.val{font-size:10px;min-width:34px;text-align:right;color:#fff;flex-shrink:0;font-variant-numeric:tabular-nums;}
+
+select{
+  flex:1;background:#1a1a1a;border:1px solid #333;color:#fff;
+  font-family:'Space Mono',monospace;font-size:10px;padding:3px 5px;
+  outline:none;cursor:pointer;
+}
+select:focus{border-color:#3af;}
+input[type=text]{
+  flex:1;background:#1a1a1a;border:1px solid #333;color:#fff;
+  font-family:'Space Mono',monospace;font-size:11px;padding:3px 6px;
+  outline:none;min-width:0;
+}
 input[type=text]:focus{border-color:#3af;}
-.crow{display:flex;align-items:center;padding:2px 10px;gap:6px;min-height:22px;}
-.crow label{color:#444;font-size:10px;min-width:88px;flex-shrink:0;}
-.swatch{width:64px;height:18px;cursor:pointer;border:1px solid #1a1a1a;position:relative;overflow:hidden;flex-shrink:0;}
-.swatch input[type=color]{position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);border:none;padding:0;cursor:pointer;opacity:0;}
+
+.crow{display:flex;align-items:center;padding:3px 12px;gap:8px;min-height:24px;}
+.crow label{color:#ccc;font-size:10px;min-width:82px;flex-shrink:0;}
+.swatch{
+  width:64px;height:20px;cursor:pointer;border:1px solid #333;
+  position:relative;overflow:hidden;flex-shrink:0;
+}
+.swatch:hover{border-color:#555;}
+.swatch input[type=color]{
+  position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);
+  border:none;padding:0;cursor:pointer;opacity:0;
+}
 .sbg{position:absolute;inset:0;pointer-events:none;}
-.chk{display:flex;align-items:center;padding:2px 10px;gap:8px;min-height:22px;}
-.chk label{color:#444;font-size:10px;}
-.chk input[type=checkbox]{accent-color:#3af;cursor:pointer;width:11px;height:11px;}
-.lrow{display:flex;flex-wrap:wrap;gap:4px;padding:5px 10px;}
-.lb{padding:2px 8px;font-size:10px;background:none;border:1px solid #1a1a1a;color:#444;cursor:pointer;font-family:'Space Mono',monospace;transition:all 0.1s;}
+
+.chk{display:flex;align-items:center;padding:3px 12px;gap:8px;min-height:24px;}
+.chk label{color:#ccc;font-size:10px;}
+.chk input[type=checkbox]{accent-color:#3af;cursor:pointer;width:12px;height:12px;}
+
+.lrow{display:flex;flex-wrap:wrap;gap:4px;padding:6px 12px;}
+.lb{
+  padding:3px 9px;font-size:10px;background:none;border:1px solid #333;
+  color:#aaa;cursor:pointer;font-family:'Space Mono',monospace;transition:all 0.1s;
+}
 .lb:hover{border-color:#3af;color:#3af;}
 .lb.active{background:#3af;border-color:#3af;color:#000;font-weight:700;}
-.savebtn{display:block;margin:8px 10px 4px;padding:5px;background:none;border:1px solid #1a1a1a;color:#444;font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:0.08em;width:calc(100% - 20px);transition:all 0.12s;}
-.savebtn:hover{border-color:#3af;color:#3af;}
-footer{padding:5px 14px;border-top:1px solid #1a1a1a;font-size:10px;color:#222;flex-shrink:0;}
+
+.pill-row{display:flex;gap:4px;padding:5px 12px;}
+.sp{
+  padding:3px 0;font-size:10px;background:none;border:1px solid #333;
+  color:#aaa;cursor:pointer;font-family:'Space Mono',monospace;transition:all 0.1s;
+  flex:1;text-align:center;
+}
+.sp:hover{border-color:#3af;color:#3af;}
+.sp.active{background:#3af;border-color:#3af;color:#000;font-weight:700;}
+
+/* Preset row */
+.preset-row{display:flex;gap:4px;padding:4px 12px 6px;}
+.pr{
+  flex:1;padding:5px 2px;font-size:9px;background:#1a1a1a;border:1px solid #2a2a2a;
+  color:#999;cursor:pointer;font-family:'Space Mono',monospace;text-align:center;
+  transition:all 0.12s;letter-spacing:0.04em;
+}
+.pr:hover{border-color:#3af;color:#fff;background:#1e2a33;}
+
+
+/* Custom font upload */
+.font-drop{
+  margin:4px 12px 6px;border:1px dashed #333;padding:8px 10px;
+  text-align:center;font-size:10px;color:#666;cursor:pointer;
+  transition:all 0.15s;position:relative;
+}
+.font-drop:hover,.font-drop.over{border-color:#3af;color:#3af;}
+/* font file input is now outside the drop zone */
+.font-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:2px 7px;margin:2px;font-size:10px;
+  background:#1a2a33;border:1px solid #3af;color:#3af;
+}
+.font-tag .rm{
+  cursor:pointer;color:#f55;font-size:12px;line-height:1;
+  background:none;border:none;padding:0;font-family:inherit;
+}
+#customFontTags{display:flex;flex-wrap:wrap;padding:2px 10px 4px;min-height:0;}
+
+
+/* Per-slot controls accordion */
+.slot-block{border-top:1px solid #1e1e1e;margin:0;}
+.slot-hdr{
+  display:flex;align-items:center;padding:4px 12px;gap:8px;
+  cursor:pointer;min-height:26px;user-select:none;
+}
+.slot-hdr:hover{background:#161616;}
+.slot-num{
+  width:18px;height:18px;display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;border:1px solid #333;color:#aaa;flex-shrink:0;
+}
+.slot-word{flex:1;font-size:10px;color:#fff;font-family:'Space Mono',monospace;}
+.slot-arrow{font-size:9px;color:#555;transition:transform 0.15s;flex-shrink:0;}
+.slot-hdr.open .slot-arrow{transform:rotate(90deg);}
+.slot-body{display:none;padding:2px 0 4px;}
+.slot-hdr.open + .slot-body{display:block;}
+
+/* Export */
+.export-row{display:flex;gap:6px;padding:6px 12px 4px;}
+.expbtn{
+  flex:1;padding:7px 4px;background:none;border:1px solid #333;color:#aaa;
+  font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;
+  letter-spacing:0.04em;transition:all 0.12s;text-align:center;
+}
+.expbtn:hover{border-color:#3af;color:#3af;}
+.expbtn.primary{border-color:#3af;color:#3af;}
+.expbtn.primary:hover{background:#3af;color:#000;}
+
+#exportProgress{display:none;margin:2px 12px 4px;height:2px;background:#222;}
+#exportBar{height:100%;background:#3af;width:0%;transition:width 0.08s;}
+#exportLabel{display:none;text-align:center;font-size:10px;color:#3af;padding:2px 12px 4px;}
+
+/* BG image indicator */
+#bgImgRow{display:none;padding:3px 12px;}
+#bgImgName{font-size:10px;color:#3af;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#clearBg{
+  padding:2px 7px;font-size:10px;background:none;border:1px solid #333;
+  color:#f55;cursor:pointer;font-family:'Space Mono',monospace;
+  flex-shrink:0;transition:all 0.1s;
+}
+#clearBg:hover{border-color:#f55;background:#f55;color:#000;}
+
+footer{
+  padding:5px 14px;border-top:1px solid #1a1a1a;font-size:9px;color:#444;
+  flex-shrink:0;display:flex;justify-content:space-between;align-items:center;
+}
+.shortcuts{color:#444;font-size:9px;letter-spacing:0.04em;}
+
+/* Toast notification */
+#toast{
+  position:fixed;bottom:40px;left:50%;transform:translateX(-50%);
+  background:#3af;color:#000;font-family:'Space Mono',monospace;font-size:11px;
+  padding:7px 18px;pointer-events:none;opacity:0;transition:opacity 0.2s;
+  letter-spacing:0.06em;z-index:100;
+}
+#toast.show{opacity:1;}
 </style>
 </head>
 <body>
+
+<div id="toast"></div>
+
 <header>
-  <span class="hl">TYPE — TOOLS</span>
-  <span class="hc">Accordion</span>
+  <span class="hl">Headnoise by Ananth Vardhan</span>
+  <span class="hc">Swing</span>
+  <div class="hr">
+    <button class="hbtn" id="btnPlayPause" title="Space">⏸ Pause</button>
+    <button class="hbtn" id="btnRandom" title="R">⚄ Random</button>
+  </div>
 </header>
+
 <div class="main">
-  <canvas id="c"></canvas>
+  <div id="canvasWrap" class="freeform">
+    <canvas id="c"></canvas>
+    <div id="dropOverlay">DROP IMAGE HERE</div>
+  </div>
+
   <div class="panel">
+
+    <!-- PRESETS -->
+    <div class="sec">▸ Presets</div>
+    <div class="preset-row">
+      <button class="pr" data-preset="stark">STARK</button>
+      <button class="pr" data-preset="neon">NEON</button>
+      <button class="pr" data-preset="mono">MONO</button>
+      <button class="pr" data-preset="loud">LOUD</button>
+      <button class="pr" data-preset="wave">WAVE</button>
+    </div>
+
+    <!-- LANGUAGE -->
     <div class="sec">▸ Language</div>
     <div class="lrow">
       <button class="lb active" data-lang="en">EN</button>
@@ -73,10 +255,45 @@ footer{padding:5px 14px;border-top:1px solid #1a1a1a;font-size:10px;color:#222;f
       <button class="lb" data-lang="ta">த</button>
       <button class="lb" data-lang="kn">ಕ</button>
     </div>
-    <div class="sec">▸ Input</div>
+
+    <!-- FONT -->
+    <div class="sec">▸ Font</div>
+    <div class="row">
+      <label>Typeface</label>
+      <select id="fontSelect">
+        <option value="bebas">Bebas Neue</option>
+        <option value="anton">Anton</option>
+        <option value="oswald">Oswald Bold</option>
+        <option value="barlow">Barlow Condensed</option>
+        <option value="russo">Russo One</option>
+        <option value="teko">Teko Bold</option>
+        <option value="noto" selected>Noto Sans Black</option>
+      </select>
+    </div>
+
+    <div class="row"><label>Size</label><input type="range" id="rFontSize" min="50" max="800" value="400" step="10"><span class="val" id="vFontSize">400</span></div>
+    <div class="font-drop" id="fontDrop">
+      ↑ Drop or click to load font (.ttf .otf .woff .woff2)
+    </div>
+    <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" multiple style="display:none">
+    <div id="customFontTags"></div>
+
+    <!-- INPUT -->
+    <div class="sec">▸ Animation</div>
     <div class="row"><label>Input Type</label><select id="inputType"><option value="animation">animation</option><option value="static">static</option></select></div>
     <div class="row"><label>Speed</label><input type="range" id="rSpeed" min="-10" max="10" value="1" step="0.1"><span class="val" id="vSpeed">1.0</span></div>
     <div class="row"><label>Time</label><input type="range" id="rTime" min="0" max="800" value="0" step="1"><span class="val" id="vTime">0</span></div>
+
+    <!-- CANVAS SIZE -->
+    <div class="sec">▸ Canvas Size</div>
+    <div class="pill-row">
+      <button class="sp active" data-mode="freeform">Free</button>
+      <button class="sp" data-mode="1:1">1:1</button>
+      <button class="sp" data-mode="9:16">9:16</button>
+      <button class="sp" data-mode="16:9">16:9</button>
+    </div>
+
+    <!-- OUTPUT -->
     <div class="sec">▸ Output</div>
     <div class="row"><label>Direction</label><select id="direction"><option value="vertical">vertical</option><option value="horizontal">horizontal</option></select></div>
     <div class="row"><label>Rows</label><input type="range" id="rRows" min="2" max="60" value="12" step="1"><span class="val" id="vRows">12</span></div>
@@ -84,349 +301,654 @@ footer{padding:5px 14px;border-top:1px solid #1a1a1a;font-size:10px;color:#222;f
     <div class="row"><label>Columns</label><input type="range" id="rCols" min="1" max="6" value="2" step="1"><span class="val" id="vCols">2</span></div>
     <div class="row"><label>Col Offset</label><input type="range" id="rColOff" min="0" max="800" value="0" step="1"><span class="val" id="vColOff">0</span></div>
     <div class="row"><label>Ease</label><input type="range" id="rEase" min="1" max="8" value="1.7" step="0.1"><span class="val" id="vEase">1.7</span></div>
+    <div class="row"><label>Scale</label><input type="range" id="rScale" min="50" max="300" value="100" step="1"><span class="val" id="vScale">100%</span></div>
+    <div class="chk"><label>Stroke mode</label><input type="checkbox" id="strokeMode"></div>
+    <div class="row" id="strokeWidthRow"><label>Stroke width</label><input type="range" id="rStroke" min="1" max="30" value="6" step="1"><span class="val" id="vStroke">6</span></div>
+    <div class="chk"><label>Mirror X</label><input type="checkbox" id="mirrorX"></div>
+    <div class="chk"><label>Mirror Y</label><input type="checkbox" id="mirrorY"></div>
+
+    <!-- COLOR -->
     <div class="sec">▸ Color</div>
-    <div class="crow"><label>BG</label><div class="swatch"><div class="sbg" id="bgBg" style="background:#000"></div><input type="color" id="cBg" value="#000000"></div><span class="val" id="vBg">#000</span></div>
+    <div class="crow"><label>BG</label><div class="swatch"><div class="sbg" id="bgBg" style="background:#000"></div><input type="color" id="cBg" value="#000000"></div><span class="val" id="vBg">#000000</span></div>
     <div class="chk"><label>Difference</label><input type="checkbox" id="diff"></div>
+    <div class="row"><label>Opacity</label><input type="range" id="rOpacity" min="10" max="100" value="100" step="1"><span class="val" id="vOpacity">100%</span></div>
     <div class="crow"><label>1</label><div class="swatch"><div class="sbg" id="sb1" style="background:#ff0000"></div><input type="color" id="c1" value="#ff0000"></div></div>
     <div class="crow"><label>2</label><div class="swatch"><div class="sbg" id="sb2" style="background:#0000ff"></div><input type="color" id="c2" value="#0000ff"></div></div>
     <div class="crow"><label>3</label><div class="swatch"><div class="sbg" id="sb3" style="background:#00cbf7"></div><input type="color" id="c3" value="#00cbf7"></div></div>
     <div class="crow"><label>4</label><div class="swatch"><div class="sbg" id="sb4" style="background:#ffc200"></div><input type="color" id="c4" value="#ffc200"></div></div>
+
+    <!-- BG IMAGE -->
+    <div class="sec">▸ Background Image</div>
+    <div class="row">
+      <label>Drop image</label>
+      <label style="flex:1;padding:5px 8px;background:#1a1a1a;border:1px dashed #333;color:#888;cursor:pointer;text-align:center;font-size:10px;" id="bgUploadLabel">
+        Click or drag ↓
+        <input type="file" id="bgUpload" accept="image/*" style="display:none">
+      </label>
+    </div>
+    <div class="row" id="bgImgRow" style="display:none;">
+      <span id="bgImgName"></span>
+      <button id="clearBg">✕</button>
+    </div>
+    <div class="row"><label>BG Opacity</label><input type="range" id="rBgOpacity" min="5" max="100" value="40" step="1"><span class="val" id="vBgOpacity">40%</span></div>
+    <div class="row"><label>BG Blend</label>
+      <select id="bgBlend">
+        <option value="source-over">Normal</option>
+        <option value="multiply">Multiply</option>
+        <option value="screen">Screen</option>
+        <option value="overlay">Overlay</option>
+        <option value="hard-light">Hard Light</option>
+        <option value="difference">Difference</option>
+        <option value="color-dodge">Dodge</option>
+      </select>
+    </div>
+
+    <!-- CONTENT -->
     <div class="sec">▸ Content</div>
-    <div class="row"><label>1</label><input type="text" id="t1" value="S" maxlength="40"></div>
-    <div class="row"><label>2</label><input type="text" id="t2" value="M" maxlength="40"></div>
-    <div class="row"><label>3</label><input type="text" id="t3" value="L" maxlength="40"></div>
-    <div class="row"><label>4</label><input type="text" id="t4" value="XL" maxlength="40"></div>
-    <button class="savebtn" id="saveBtn">↓ Save PNG</button>
+    <div id="slotsContainer">
+      <div class="slot-block" data-slot="0">
+        <div class="slot-hdr" data-slot="0">
+          <span class="slot-num">1</span>
+          <input type="text" id="t1" value="I" maxlength="40" class="slot-word" onclick="event.stopPropagation()">
+          <span class="slot-arrow">▶</span>
+        </div>
+        <div class="slot-body">
+          <div class="row"><label>Offset X</label><input type="range" id="rSX0" min="-100" max="100" value="0" step="1"><span class="val" id="vSX0">0</span></div>
+          <div class="row"><label>Offset Y</label><input type="range" id="rSY0" min="-100" max="100" value="0" step="1"><span class="val" id="vSY0">0</span></div>
+          <div class="row"><label>Scale</label><input type="range" id="rSS0" min="20" max="300" value="100" step="1"><span class="val" id="vSS0">100%</span></div>
+        </div>
+      </div>
+      <div class="slot-block" data-slot="1">
+        <div class="slot-hdr" data-slot="1">
+          <span class="slot-num">2</span>
+          <input type="text" id="t2" value="O" maxlength="40" class="slot-word" onclick="event.stopPropagation()">
+          <span class="slot-arrow">▶</span>
+        </div>
+        <div class="slot-body">
+          <div class="row"><label>Offset X</label><input type="range" id="rSX1" min="-100" max="100" value="0" step="1"><span class="val" id="vSX1">0</span></div>
+          <div class="row"><label>Offset Y</label><input type="range" id="rSY1" min="-100" max="100" value="0" step="1"><span class="val" id="vSY1">0</span></div>
+          <div class="row"><label>Scale</label><input type="range" id="rSS1" min="20" max="300" value="100" step="1"><span class="val" id="vSS1">100%</span></div>
+        </div>
+      </div>
+      <div class="slot-block" data-slot="2">
+        <div class="slot-hdr" data-slot="2">
+          <span class="slot-num">3</span>
+          <input type="text" id="t3" value="I" maxlength="40" class="slot-word" onclick="event.stopPropagation()">
+          <span class="slot-arrow">▶</span>
+        </div>
+        <div class="slot-body">
+          <div class="row"><label>Offset X</label><input type="range" id="rSX2" min="-100" max="100" value="0" step="1"><span class="val" id="vSX2">0</span></div>
+          <div class="row"><label>Offset Y</label><input type="range" id="rSY2" min="-100" max="100" value="0" step="1"><span class="val" id="vSY2">0</span></div>
+          <div class="row"><label>Scale</label><input type="range" id="rSS2" min="20" max="300" value="100" step="1"><span class="val" id="vSS2">100%</span></div>
+        </div>
+      </div>
+      <div class="slot-block" data-slot="3">
+        <div class="slot-hdr" data-slot="3">
+          <span class="slot-num">4</span>
+          <input type="text" id="t4" value="O" maxlength="40" class="slot-word" onclick="event.stopPropagation()">
+          <span class="slot-arrow">▶</span>
+        </div>
+        <div class="slot-body">
+          <div class="row"><label>Offset X</label><input type="range" id="rSX3" min="-100" max="100" value="0" step="1"><span class="val" id="vSX3">0</span></div>
+          <div class="row"><label>Offset Y</label><input type="range" id="rSY3" min="-100" max="100" value="0" step="1"><span class="val" id="vSY3">0</span></div>
+          <div class="row"><label>Scale</label><input type="range" id="rSS3" min="20" max="300" value="100" step="1"><span class="val" id="vSS3">100%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="sec">▸ Export</div>
+    <div class="export-row">
+      <button class="expbtn primary" id="savePng">↓ PNG</button>
+      <button class="expbtn" id="saveSeq">⏺ PNG Seq (2×)</button>
+    </div>
+    <div id="exportProgress"><div id="exportBar"></div></div>
+    <div id="exportLabel"></div>
+
   </div>
 </div>
-<footer>© 2025 Type Tools. All rights reserved.</footer>
+
+<footer>
+  <span class="hl" style="font-size:9px;">Headnoise by Ananth Vardhan</span>
+  <span class="shortcuts">
+    <kbd>Space</kbd> play/pause &nbsp;
+    <kbd>R</kbd> randomise &nbsp;
+    <kbd>S</kbd> save PNG
+  </span>
+</footer>
 
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
+const canvasWrap = document.getElementById('canvasWrap');
 
-// Font families per language
-const fontMap = {
-  en:"'Noto Sans',sans-serif",
-  te:"'Noto Sans Telugu',sans-serif",
-  hi:"'Noto Sans Devanagari',sans-serif",
-  ml:"'Noto Sans Malayalam',sans-serif",
-  ta:"'Noto Sans Tamil',sans-serif",
-  kn:"'Noto Sans Kannada',sans-serif"
-};
-const defaultTexts = {
-  en:['S','M','L','XL'],
-  te:['చి','మ','పె','చాలా'],
-  hi:['छो','म','बड़','विशाल'],
-  ml:['ചെ','മ','വ','അതി'],
-  ta:['சி','ம','பெ','மிக'],
-  kn:['ಚಿ','ಮ','ದೊ','ಅತಿ']
-};
+// ── TOAST ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
 
+// ── FONTS ─────────────────────────────────────────────────────────────────
+const fontOptions = {
+  bebas:  { stack:"'Bebas Neue',sans-serif",       weight:'400' },
+  anton:  { stack:"'Anton',sans-serif",             weight:'400' },
+  oswald: { stack:"'Oswald',sans-serif",            weight:'700' },
+  barlow: { stack:"'Barlow Condensed',sans-serif",  weight:'900' },
+  russo:  { stack:"'Russo One',sans-serif",          weight:'400' },
+  teko:   { stack:"'Teko',sans-serif",              weight:'700' },
+  noto:   { stack:"'Noto Sans',sans-serif",         weight:'900' },
+};
+const nativeFonts = {
+  te:{ stack:"'Noto Sans Telugu',sans-serif",       weight:'900' },
+  hi:{ stack:"'Noto Sans Devanagari',sans-serif",   weight:'900' },
+  ml:{ stack:"'Noto Sans Malayalam',sans-serif",    weight:'900' },
+  ta:{ stack:"'Noto Sans Tamil',sans-serif",        weight:'900' },
+  kn:{ stack:"'Noto Sans Kannada',sans-serif",      weight:'900' },
+};
 let lang = 'en';
+let selectedFont = 'noto';
+function getFont() {
+  if (lang !== 'en') return nativeFonts[lang] || fontOptions.noto;
+  if (customFonts[selectedFont]) return customFonts[selectedFont];
+  return fontOptions[selectedFont] || fontOptions.noto;
+}
 
-// Params matching the original source
-const params = {
-  inputType: 'animation',
-  direction: 'vertical',
-  rows: 12,
-  rowOffset: 20,
-  columns: 2,
-  columnOffset: 0,
-  ease: 1.7,
-  animationSpeed: 1.0,
-  blend: false,
-  clr_bg: '#000000',
-  clrs: ['#ff0000','#0000ff','#00cbf7','#ffc200'],
-  type: ['S','M','L','XL'],
+// ── DEFAULT TEXTS ─────────────────────────────────────────────────────────
+const defaultTexts = {
+  en:['I','O','I','O'],
+  te:['క','మ','గ','డ'],
+  hi:['क','म','ग','ड'],
+  ml:['ക','മ','ഗ','ഡ'],
+  ta:['க','ம','ப','ட'],
+  kn:['ಕ','ಮ','ಗ','ಡ'],
 };
 
-// Animation timeline — matches original exactly
+// ── PARAMS ────────────────────────────────────────────────────────────────
+const params = {
+  inputType:'animation', direction:'vertical',
+  rows:12, rowOffset:20, columns:2, columnOffset:0,
+  ease:1.7, animationSpeed:1.0,
+  blend:false, clr_bg:'#000000',
+  clrs:['#ff0000','#0000ff','#00cbf7','#ffc200'],
+  type:['I','O','I','O'],
+  fontSize:400,
+  slotOffsetX:[0,0,0,0],
+  slotOffsetY:[0,0,0,0],
+  slotScale:[1,1,1,1],
+  opacity:1.0, mirrorX:false, mirrorY:false,
+  bgOpacity:0.4, bgBlend:'source-over',
+};
+
+// ── PRESETS ───────────────────────────────────────────────────────────────
+const PRESETS = {
+  stark:{
+    clr_bg:'#000000', clrs:['#ffffff','#ffffff','#ffffff','#ffffff'],
+    rows:16, rowOffset:15, columns:2, columnOffset:0,
+    ease:3.5, animationSpeed:1.2, blend:false,
+    type:['I','O','I','O'], direction:'vertical',
+  },
+  neon:{
+    clr_bg:'#000000', clrs:['#ff00ff','#00ffff','#ff00ff','#00ffff'],
+    rows:10, rowOffset:25, columns:2, columnOffset:100,
+    ease:2.0, animationSpeed:1.5, blend:true,
+    type:['I','O','I','O'], direction:'vertical',
+  },
+  mono:{
+    clr_bg:'#f0ede8', clrs:['#1a1a1a','#1a1a1a','#1a1a1a','#1a1a1a'],
+    rows:20, rowOffset:10, columns:3, columnOffset:0,
+    ease:1.2, animationSpeed:0.8, blend:false,
+    type:['I','O','I','O'], direction:'vertical',
+  },
+  loud:{
+    clr_bg:'#ff2200', clrs:['#ffff00','#000000','#ffff00','#000000'],
+    rows:8, rowOffset:30, columns:2, columnOffset:50,
+    ease:4.0, animationSpeed:2.0, blend:false,
+    type:['I','O','I','O'], direction:'vertical',
+  },
+  wave:{
+    clr_bg:'#000000', clrs:['#ff6600','#0066ff','#ff6600','#0066ff'],
+    rows:30, rowOffset:8, columns:1, columnOffset:0,
+    ease:1.5, animationSpeed:0.6, blend:false,
+    type:['I','O','I','O'], direction:'horizontal',
+  },
+};
+
+function applyPreset(name) {
+  const p = PRESETS[name];
+  if (!p) return;
+  Object.assign(params, p);
+  // Sync UI
+  syncUI();
+  cacheAll();
+  toast(name.toUpperCase() + ' preset loaded');
+}
+
+function syncUI() {
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v; };
+  const setTxt = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('rSpeed', params.animationSpeed); setTxt('vSpeed', params.animationSpeed.toFixed(1));
+  set('rRows', params.rows); setTxt('vRows', params.rows);
+  set('rRowOff', params.rowOffset); setTxt('vRowOff', params.rowOffset);
+  set('rCols', params.columns); setTxt('vCols', params.columns);
+  set('rColOff', params.columnOffset); setTxt('vColOff', params.columnOffset);
+  set('rEase', params.ease); setTxt('vEase', params.ease.toFixed(1));
+  set('direction', params.direction);
+  document.getElementById('diff').checked = params.blend;
+  document.getElementById('mirrorX').checked = params.mirrorX;
+  document.getElementById('mirrorY').checked = params.mirrorY;
+  // BG color
+  const bgBg = document.getElementById('bgBg');
+  if (bgBg) bgBg.style.background = params.clr_bg;
+  document.getElementById('cBg').value = params.clr_bg;
+  document.getElementById('vBg').textContent = params.clr_bg;
+  // Colors
+  ['c1','c2','c3','c4'].forEach((id,i) => {
+    document.getElementById(id).value = params.clrs[i];
+    document.getElementById('sb'+(i+1)).style.background = params.clrs[i];
+  });
+  // Texts
+  params.type.forEach((t,i) => {
+    document.getElementById('t'+(i+1)).value = t;
+  });
+}
+
+// ── RANDOM ────────────────────────────────────────────────────────────────
+function randomise() {
+  const rnd = (min,max,step=1) => Math.round((Math.random()*(max-min)+min)/step)*step;
+  const rndHex = () => '#' + Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');
+  params.rows       = rnd(4, 30);
+  params.rowOffset  = rnd(0, 60);
+  params.columns    = rnd(1, 4);
+  params.columnOffset = rnd(0, 200);
+  params.ease       = Math.round((Math.random()*7+1)*10)/10;
+  params.animationSpeed = Math.round((Math.random()*3+0.3)*10)/10;
+  params.direction  = Math.random() > 0.5 ? 'vertical' : 'horizontal';
+  params.blend      = Math.random() > 0.7;
+  params.clr_bg     = rndHex();
+  params.clrs       = [rndHex(), rndHex(), rndHex(), rndHex()];
+  document.getElementById('direction').value = params.direction;
+  syncUI();
+  cacheAll();
+  toast('Randomised ⚄');
+}
+
+// ── CANVAS SIZE ───────────────────────────────────────────────────────────
+let sizeMode = 'freeform';
+
+function applyCanvasSize() {
+  canvasWrap.className = sizeMode === 'freeform' ? 'freeform' : 'fixed';
+  const wrap = canvasWrap.getBoundingClientRect();
+  if (sizeMode === 'freeform') {
+    canvas.width  = Math.floor(wrap.width);
+    canvas.height = Math.floor(wrap.height);
+    canvas.style.width = '';
+    canvas.style.height = '';
+  } else {
+    const [rw,rh] = sizeMode.split(':').map(Number);
+    const maxW = wrap.width - 24, maxH = wrap.height - 24;
+    let cw = maxW, ch = cw*rh/rw;
+    if (ch > maxH) { ch = maxH; cw = ch*rw/rh; }
+    canvas.width  = Math.floor(cw);
+    canvas.height = Math.floor(ch);
+    canvas.style.width  = canvas.width  + 'px';
+    canvas.style.height = canvas.height + 'px';
+  }
+  cacheAll();
+}
+
+// ── ANIMATION ─────────────────────────────────────────────────────────────
 let anim_time = 0;
-let anim_duration = 800;
+const anim_duration = 800;
 let anim_playing = true;
 let rafId = null;
-
-// Pre-rendered word textures (offscreen canvases) — matches wordTextures[] in original
-let wordTextures = [null, null, null, null];
+let wordTextures = [null,null,null,null];
 
 function easeInOut(x) {
-  // Original: x < 0.5 ? pow(2,ease-1)*pow(x,ease) : 1 - pow(-2x+2,ease)/2
   const e = params.ease;
   return x < 0.5
-    ? Math.pow(2, e - 1) * Math.pow(x, e)
-    : 1 - Math.pow(-2 * x + 2, e) / 2;
+    ? Math.pow(2,e-1)*Math.pow(x,e)
+    : 1 - Math.pow(-2*x+2,e)/2;
+}
+function invertHex(hex) {
+  return '#'+(0xFFFFFF^parseInt(hex.replace('#',''),16)).toString(16).padStart(6,'0').toUpperCase();
 }
 
-function invertHexColor(hex) {
-  hex = hex.replace('#', '');
-  let intColor = parseInt(hex, 16);
-  let inv = (0xFFFFFF ^ intColor).toString(16).padStart(6, '0');
-  return '#' + inv.toUpperCase();
-}
-
-// Build each word texture — matches cacheInput() in original
-// Each texture: word scaled to fill width, with scaleY=3.2 (tall)
+// ── TEXTURE CACHE ─────────────────────────────────────────────────────────
 function cacheInput(index) {
-  const TEX_SIZE = 1000;
-  const offscreen = document.createElement('canvas');
-  offscreen.width = TEX_SIZE;
-  offscreen.height = TEX_SIZE;
-  const oc = offscreen.getContext('2d');
-
-  const wordText = (params.type[index] || '').toUpperCase();
-  const clr_text = params.blend ? invertHexColor(params.clr_bg) : params.clrs[index];
-
+  const TEX = 1000;
+  const isLatin = lang === 'en';
+  const word = isLatin ? (params.type[index]||'').toUpperCase() : (params.type[index]||'');
+  const color = params.blend ? invertHex(params.clr_bg) : params.clrs[index];
+  const font = getFont();
+  const off = document.createElement('canvas');
+  off.width = TEX; off.height = TEX;
+  const oc = off.getContext('2d');
   oc.fillStyle = params.clr_bg;
-  oc.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
-
-  const fontSize = 400;
-  oc.font = `900 ${fontSize}px ${fontMap[lang]}`;
+  oc.fillRect(0,0,TEX,TEX);
+  oc.font = `${font.weight} ${params.fontSize}px ${font.stack}`;
   oc.textAlign = 'center';
   oc.textBaseline = 'middle';
-  oc.fillStyle = clr_text;
-
-  const bboxWidth = oc.measureText(wordText).width || 1;
-
-  // Scale X to fill texture width, scale Y by 3.2 (same as original)
-  const scaleX = TEX_SIZE / bboxWidth;
-  const scaleY = 3.2;
-
+  oc.fillStyle = color;
+  const bw = oc.measureText(word).width || 1;
+  const ss = params.slotScale[index] || 1;
+  const oxPct = (params.slotOffsetX[index] || 0) / 100;
+  const oyPct = (params.slotOffsetY[index] || 0) / 100;
   oc.save();
-  oc.translate(TEX_SIZE * 0.5, TEX_SIZE * 0.5 - 13);
-  oc.scale(scaleX, scaleY);
-  oc.fillText(wordText, 0, 0);
+  // base position: centre, then apply per-slot offset (as fraction of TEX)
+  oc.translate(TEX*0.5 + TEX*oxPct, TEX*0.5 - 13 + TEX*oyPct);
+  oc.scale((TEX/bw)*ss, 3.2*ss);
+  oc.fillText(word, 0, 0);
   oc.restore();
+  wordTextures[index] = off;
+}
+function cacheAll() { for(let i=0;i<4;i++) cacheInput(i); }
 
-  wordTextures[index] = offscreen;
+// ── BG IMAGE ──────────────────────────────────────────────────────────────
+let bgImage = null;
+let bgImageName = '';
+
+function loadBgImage(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      bgImage = img;
+      bgImageName = file.name;
+      document.getElementById('bgImgName').textContent = file.name;
+      document.getElementById('bgImgRow').style.display = 'flex';
+      toast('Background loaded');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
-function cacheAll() {
-  for (let i = 0; i < 4; i++) cacheInput(i);
-}
+// ── DRAW ──────────────────────────────────────────────────────────────────
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  ctx.save();
+  ctx.fillStyle = params.clr_bg;
+  ctx.fillRect(0,0,W,H);
 
-// ---- DRAW VERTICAL (main mode) ----
-// Direct port of draw_anim_vert → stretch_vert → stretch_vert_single
+  // BG image layer
+  if (bgImage) {
+    ctx.save();
+    ctx.globalAlpha = params.bgOpacity;
+    ctx.globalCompositeOperation = params.bgBlend;
+    const scale = Math.max(W/bgImage.width, H/bgImage.height);
+    const bw = bgImage.width*scale, bh = bgImage.height*scale;
+    ctx.drawImage(bgImage, (W-bw)/2, (H-bh)/2, bw, bh);
+    ctx.restore();
+  }
+
+  ctx.globalAlpha = params.opacity;
+  ctx.globalCompositeOperation = 'source-over';
+
+  const mirrors = [
+    { sx:1,  sy:1,  tx:0,   ty:0   },
+    ...(params.mirrorX ? [{ sx:-1, sy:1,  tx:-W,  ty:0   }] : []),
+    ...(params.mirrorY ? [{ sx:1,  sy:-1, tx:0,   ty:-H  }] : []),
+    ...(params.mirrorX && params.mirrorY ? [{ sx:-1, sy:-1, tx:-W, ty:-H }] : []),
+  ];
+
+  for (const m of mirrors) {
+    ctx.save();
+    ctx.scale(m.sx, m.sy);
+    ctx.translate(m.tx, m.ty);
+    if (params.direction==='vertical') draw_anim_vert();
+    else draw_anim_hor();
+    ctx.restore();
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.restore();
+}
 
 function draw_anim_vert() {
-  const w = canvas.width;
-  const h = canvas.height;
-
-  for (let j = 0; j < params.columns; j++) {
-    for (let i = 0; i < params.rows; i++) {
-      stretch_vert(w, h, params.rows, params.columns, i, j + 1,
-        (i * params.rowOffset + j * params.columnOffset));
-    }
-  }
+  const w=canvas.width, h=canvas.height;
+  for(let j=0;j<params.columns;j++)
+    for(let i=0;i<params.rows;i++)
+      stretch_vert(w,h,params.rows,params.columns,i,j+1,
+        i*params.rowOffset+j*params.columnOffset);
 }
-
-function stretch_vert(w, h, divider_w, divider_h, offset_w, offset_h, t_offset) {
-  // px = the x-center for this column's content (in full-width space before scaling)
-  const px = w + w * offset_w;
-
-  // linear cycles 0..3, anim is the eased fraction within each segment
-  const linear = Math.abs((((anim_time + t_offset) / (anim_duration / 2)) % 2) - 1) * 2.999;
-  const anim = easeInOut(linear % 1);
-
-  // Scale down by number of rows
-  ctx.save();
-  ctx.scale(1 / divider_w, 1);
-
-  if (linear <= 1) {
-    stretch_vert_single(3, 2, w, h, divider_w, divider_h, px, offset_h, anim);
-  } else if (linear <= 2) {
-    stretch_vert_single(2, 1, w, h, divider_w, divider_h * 2, px, offset_h * 2, anim);
-    stretch_vert_single(2, 1, w, h, divider_w, divider_h * 2, px, offset_h * 2 - 1, anim);
-  } else {
-    stretch_vert_single(1, 0, w, h, divider_w, divider_h * 4, px, offset_h * 4, anim);
-    stretch_vert_single(1, 0, w, h, divider_w, divider_h * 4, px, offset_h * 4 - 1, anim);
-    stretch_vert_single(1, 0, w, h, divider_w, divider_h * 4, px, offset_h * 4 - 2, anim);
-    stretch_vert_single(1, 0, w, h, divider_w, divider_h * 4, px, offset_h * 4 - 3, anim);
-  }
-
+function stretch_vert(w,h,dw,dh,ow,oh,t_off) {
+  const px=w+w*ow;
+  const linear=Math.abs((((anim_time+t_off)/(anim_duration/2))%2)-1)*2.999;
+  const anim=easeInOut(linear%1);
+  ctx.save(); ctx.scale(1/dw,1);
+  if(linear<=1)       stretch_vert_single(3,2,w,h,dw,dh,    px,oh,    anim);
+  else if(linear<=2){stretch_vert_single(2,1,w,h,dw,dh*2,  px,oh*2,  anim);
+                     stretch_vert_single(2,1,w,h,dw,dh*2,  px,oh*2-1,anim);}
+  else               {stretch_vert_single(1,0,w,h,dw,dh*4,  px,oh*4,  anim);
+                     stretch_vert_single(1,0,w,h,dw,dh*4,  px,oh*4-1,anim);
+                     stretch_vert_single(1,0,w,h,dw,dh*4,  px,oh*4-2,anim);
+                     stretch_vert_single(1,0,w,h,dw,dh*4,  px,oh*4-3,anim);}
   ctx.restore();
 }
-
-function stretch_vert_single(index1, index2, w, h, divider_w, divider_h, px, py, f) {
-  const letter1_tex = wordTextures[index1];
-  const letter2_tex = wordTextures[index2];
-  if (!letter1_tex || !letter2_tex) return;
-
-  const anim = f;
-  const offset_h = py - 1;
-
-  const textureScaleX = w / letter1_tex.width;
-  const textureScaleY = h / letter1_tex.height;
-
-  // stretch1: the "outgoing" word shrinks vertically
-  const stretch1 = (1 - anim) / divider_h;
-  // stretch2: the "incoming" word grows from edges
-  const stretch2 = (anim / 2) / divider_h;
-
-  const compositeOp = params.blend ? 'difference' : 'source-over';
-
-  // Draw letter1 — centered in its slot, shrinking
-  if (stretch1 > 0.0001) {
-    ctx.save();
-    ctx.scale(1, stretch1);
-    ctx.scale(textureScaleX, textureScaleY);
-    ctx.globalCompositeOperation = compositeOp;
-    // Center X: (px - w/2) in texture space
-    // Center Y: slot center = h/stretch1/divider_h/2 * (offset_h*2+1)
-    const imgX = (px - w / 2) / textureScaleX;
-    const imgY = (h / stretch1 / divider_h / 2 * (offset_h * 2 + 1)) / textureScaleY;
-    ctx.drawImage(letter1_tex,
-      imgX - letter1_tex.width / 2,
-      imgY - letter1_tex.height / 2
-    );
+function stretch_vert_single(i1,i2,w,h,dw,dh,px,py,f) {
+  const t1=wordTextures[i1],t2=wordTextures[i2];
+  if(!t1||!t2)return;
+  const oh=py-1;
+  const tsX=w/t1.width, tsY=h/t1.height;
+  const s1=(1-f)/dh, s2=(f/2)/dh;
+  const op=params.blend?'difference':'source-over';
+  if(s1>1e-4){
+    ctx.save();ctx.scale(1,s1);ctx.scale(tsX,tsY);
+    ctx.globalCompositeOperation=op;
+    ctx.drawImage(t1,(px-w/2)/tsX-t1.width/2,(h/s1/dh/2*(oh*2+1))/tsY-t1.height/2);
     ctx.restore();
   }
-
-  // Draw letter2 — two copies growing in from top and bottom edges
-  if (stretch2 > 0.0001) {
-    ctx.save();
-    ctx.scale(1, stretch2);
-    ctx.scale(textureScaleX, textureScaleY);
-    ctx.globalCompositeOperation = compositeOp;
-    const imgX2 = (px - w / 2) / textureScaleX;
-    // Top copy
-    const imgY2a = (h / stretch2 / divider_h * (offset_h) + h / 2) / textureScaleY;
-    // Bottom copy
-    const imgY2b = (h / stretch2 / divider_h * (offset_h + 1) - h / 2) / textureScaleY;
-    ctx.drawImage(letter2_tex,
-      imgX2 - letter2_tex.width / 2,
-      imgY2a - letter2_tex.height / 2
-    );
-    ctx.drawImage(letter2_tex,
-      imgX2 - letter2_tex.width / 2,
-      imgY2b - letter2_tex.height / 2
-    );
+  if(s2>1e-4){
+    ctx.save();ctx.scale(1,s2);ctx.scale(tsX,tsY);
+    ctx.globalCompositeOperation=op;
+    ctx.drawImage(t2,(px-w/2)/tsX-t2.width/2,(h/s2/dh*oh+h/2)/tsY-t2.height/2);
+    ctx.drawImage(t2,(px-w/2)/tsX-t2.width/2,(h/s2/dh*(oh+1)-h/2)/tsY-t2.height/2);
     ctx.restore();
   }
 }
 
-// ---- DRAW HORIZONTAL ----
 function draw_anim_hor() {
-  const w = canvas.width;
-  const h = canvas.height;
-
-  for (let j = 0; j < params.columns; j++) {
-    for (let i = 0; i < params.rows; i++) {
-      stretch_hor(w, h, params.columns, params.rows, j + 1, i,
-        (i * params.rowOffset + j * params.columnOffset));
-    }
-  }
+  const w=canvas.width,h=canvas.height;
+  for(let j=0;j<params.columns;j++)
+    for(let i=0;i<params.rows;i++)
+      stretch_hor(w,h,params.columns,params.rows,j+1,i,
+        i*params.rowOffset+j*params.columnOffset);
 }
-
-function stretch_hor(w, h, divider_w, divider_h, offset_w, offset_h, t_offset) {
-  const py = h * offset_h;
-  const linear = Math.abs((((anim_time + t_offset) / (anim_duration / 2)) % 2) - 1) * 2.999;
-  const anim = easeInOut(linear % 1);
-
-  ctx.save();
-  ctx.scale(1, 1 / divider_h);
-
-  if (linear <= 1) {
-    stretch_hor_single(3, 2, w, h, divider_w, divider_h, offset_w, py, anim);
-  } else if (linear <= 2) {
-    stretch_hor_single(2, 1, w, h, divider_w * 2, divider_h, offset_w * 2, py, anim);
-    stretch_hor_single(2, 1, w, h, divider_w * 2, divider_h, offset_w * 2 - 1, py, anim);
-  } else {
-    stretch_hor_single(1, 0, w, h, divider_w * 4, divider_h, offset_w * 4, py, anim);
-    stretch_hor_single(1, 0, w, h, divider_w * 4, divider_h, offset_w * 4 - 1, py, anim);
-    stretch_hor_single(1, 0, w, h, divider_w * 4, divider_h, offset_w * 4 - 2, py, anim);
-    stretch_hor_single(1, 0, w, h, divider_w * 4, divider_h, offset_w * 4 - 3, py, anim);
-  }
-
+function stretch_hor(w,h,dw,dh,ow,oh,t_off) {
+  const py=h*oh;
+  const linear=Math.abs((((anim_time+t_off)/(anim_duration/2))%2)-1)*2.999;
+  const anim=easeInOut(linear%1);
+  ctx.save();ctx.scale(1,1/dh);
+  if(linear<=1)       stretch_hor_single(3,2,w,h,dw,  dh,ow,    py,anim);
+  else if(linear<=2){stretch_hor_single(2,1,w,h,dw*2,dh,ow*2,  py,anim);
+                     stretch_hor_single(2,1,w,h,dw*2,dh,ow*2-1,py,anim);}
+  else               {stretch_hor_single(1,0,w,h,dw*4,dh,ow*4,  py,anim);
+                     stretch_hor_single(1,0,w,h,dw*4,dh,ow*4-1,py,anim);
+                     stretch_hor_single(1,0,w,h,dw*4,dh,ow*4-2,py,anim);
+                     stretch_hor_single(1,0,w,h,dw*4,dh,ow*4-3,py,anim);}
   ctx.restore();
 }
-
-function stretch_hor_single(index1, index2, w, h, divider_w, divider_h, px, py, f) {
-  const letter1_tex = wordTextures[index1];
-  const letter2_tex = wordTextures[index2];
-  if (!letter1_tex || !letter2_tex) return;
-
-  const anim = f;
-  const offset_w = px - 1;
-
-  const textureScaleX = w / letter1_tex.width;
-  const textureScaleY = h / letter1_tex.height;
-
-  const stretch1 = (1 - anim) / divider_w;
-  const stretch2 = (anim / 2) / divider_w;
-
-  const compositeOp = params.blend ? 'difference' : 'source-over';
-
-  if (stretch1 > 0.0001) {
-    ctx.save();
-    ctx.scale(stretch1, 1);
-    ctx.scale(textureScaleX, textureScaleY);
-    ctx.globalCompositeOperation = compositeOp;
-    const imgX = (w / divider_w / stretch1 / 2 * (offset_w * 2 + 1)) / textureScaleX;
-    const imgY = (py + h / 2) / textureScaleY;
-    ctx.drawImage(letter1_tex, imgX - letter1_tex.width/2, imgY - letter1_tex.height/2);
+function stretch_hor_single(i1,i2,w,h,dw,dh,px,py,f) {
+  const t1=wordTextures[i1],t2=wordTextures[i2];
+  if(!t1||!t2)return;
+  const ow=px-1;
+  const tsX=w/t1.width,tsY=h/t1.height;
+  const s1=(1-f)/dw,s2=(f/2)/dw;
+  const op=params.blend?'difference':'source-over';
+  if(s1>1e-4){
+    ctx.save();ctx.scale(s1,1);ctx.scale(tsX,tsY);
+    ctx.globalCompositeOperation=op;
+    ctx.drawImage(t1,(w/dw/s1/2*(ow*2+1))/tsX-t1.width/2,(py+h/2)/tsY-t1.height/2);
     ctx.restore();
   }
-
-  if (stretch2 > 0.0001) {
-    ctx.save();
-    ctx.scale(stretch2, 1);
-    ctx.scale(textureScaleX, textureScaleY);
-    ctx.globalCompositeOperation = compositeOp;
-    const imgX2a = ((w / divider_w / stretch2 / 2 * (offset_w * 2)) + w / 2) / textureScaleX;
-    const imgX2b = ((w / divider_w / stretch2 / 2 * (offset_w * 2 + 2)) - w / 2) / textureScaleX;
-    const imgY2 = (py + h / 2) / textureScaleY;
-    ctx.globalCompositeOperation = compositeOp;
-    ctx.drawImage(letter2_tex, imgX2a - letter2_tex.width/2, imgY2 - letter2_tex.height/2);
-    ctx.drawImage(letter2_tex, imgX2b - letter2_tex.width/2, imgY2 - letter2_tex.height/2);
+  if(s2>1e-4){
+    ctx.save();ctx.scale(s2,1);ctx.scale(tsX,tsY);
+    ctx.globalCompositeOperation=op;
+    ctx.drawImage(t2,((w/dw/s2/2*(ow*2))+w/2)/tsX-t2.width/2,(py+h/2)/tsY-t2.height/2);
+    ctx.drawImage(t2,((w/dw/s2/2*(ow*2+2))-w/2)/tsX-t2.width/2,(py+h/2)/tsY-t2.height/2);
     ctx.restore();
   }
 }
 
-// ---- MAIN DRAW ----
-function draw() {
-  ctx.fillStyle = params.clr_bg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.globalCompositeOperation = 'source-over';
-
-  if (params.direction === 'vertical') {
-    draw_anim_vert();
-  } else {
-    draw_anim_hor();
-  }
-  ctx.globalCompositeOperation = 'source-over';
-}
-
-function resizeCanvas() {
-  const r = canvas.parentElement.getBoundingClientRect();
-  canvas.width = r.width;
-  canvas.height = r.height;
-}
-
-let lastTs = null;
-function loop(ts) {
-  if (!lastTs) lastTs = ts;
-  lastTs = ts;
-
-  if (params.inputType === 'animation' && anim_playing) {
+// ── LOOP ──────────────────────────────────────────────────────────────────
+function loop() {
+  if(params.inputType==='animation'&&anim_playing) {
     anim_time += params.animationSpeed;
-    if (anim_time > anim_duration) anim_time = 0;
-    if (anim_time < 0) anim_time = anim_duration;
+    if(anim_time>anim_duration) anim_time=0;
+    if(anim_time<0) anim_time=anim_duration;
   }
-
   draw();
   rafId = requestAnimationFrame(loop);
 }
 
-// ---- CONTROLS ----
-document.getElementById('inputType').addEventListener('change', e => { params.inputType = e.target.value; });
-document.getElementById('direction').addEventListener('change', e => { params.direction = e.target.value; cacheAll(); });
-document.getElementById('diff').addEventListener('change', e => { params.blend = e.target.checked; cacheAll(); });
+// ── PNG SEQUENCE — zipped via JSZip ──────────────────────────────────────
+let exportRunning = false;
+async function exportPNGSequence() {
+  if(exportRunning) return;
 
-function rWire(id, key, parse, vid, fmt) {
-  document.getElementById(id).addEventListener('input', e => {
-    params[key] = parse(e.target.value);
-    if (vid) document.getElementById(vid).textContent = fmt ? fmt(params[key]) : params[key];
+  // Declare UI refs first so they're available everywhere in this function
+  const prog = document.getElementById('exportProgress');
+  const bar  = document.getElementById('exportBar');
+  const lbl  = document.getElementById('exportLabel');
+  prog.style.display='block'; lbl.style.display='block';
+
+  // Load JSZip lazily if not already present
+  if(!window.JSZip) {
+    lbl.textContent='Loading JSZip…';
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload=res; s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  exportRunning = true;
+  const wasPlaying = anim_playing;
+  anim_playing = false;
+  if(rafId) cancelAnimationFrame(rafId);
+
+  const speed = Math.abs(params.animationSpeed) || 1;
+  const framesPerLoop = Math.round(anim_duration / speed);
+  const totalFrames = framesPerLoop * 2;
+  const savedTime = anim_time;
+
+  const zip = new JSZip();
+  const folder = zip.folder('swing_frames');
+  anim_time = 0;
+
+  for(let f=0; f<totalFrames; f++) {
+    draw();
+    // toDataURL gives base64 — strip the prefix for JSZip
+    const b64 = canvas.toDataURL('image/png').split(',')[1];
+    folder.file(`frame_${String(f).padStart(4,'0')}.png`, b64, {base64:true});
+    anim_time += speed;
+    if(anim_time > anim_duration) anim_time -= anim_duration;
+    bar.style.width = Math.round((f+1)/totalFrames*50)+'%'; // first 50% = render
+    lbl.textContent = `Rendering frame ${f+1} / ${totalFrames}…`;
+    if(f%5===0) await new Promise(r=>setTimeout(r,0));
+  }
+
+  lbl.textContent = 'Zipping frames…';
+  bar.style.width = '75%';
+  await new Promise(r=>setTimeout(r,0));
+
+  const blob = await zip.generateAsync({type:'blob'}, meta=>{
+    bar.style.width = (75 + meta.percent*0.25)+'%';
+  });
+
+  const a = document.createElement('a');
+  a.download = 'swing_frames.zip';
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 10000);
+
+  anim_time = savedTime; anim_playing = wasPlaying; exportRunning = false;
+  prog.style.display='none'; lbl.style.display='none'; bar.style.width='0%';
+  rafId = requestAnimationFrame(loop);
+  toast('Exported ' + totalFrames + ' frames as ZIP');
+}
+
+// ── CONTROLS WIRING ───────────────────────────────────────────────────────
+document.getElementById('inputType').addEventListener('change',e=>{params.inputType=e.target.value;});
+document.getElementById('direction').addEventListener('change',e=>{params.direction=e.target.value;cacheAll();});
+document.getElementById('diff').addEventListener('change',e=>{params.blend=e.target.checked;cacheAll();});
+document.getElementById('mirrorX').addEventListener('change',e=>{params.mirrorX=e.target.checked;});
+document.getElementById('mirrorY').addEventListener('change',e=>{params.mirrorY=e.target.checked;});
+// ── CUSTOM FONT LOADING ──────────────────────────────────────────────────
+const customFonts = {};
+
+function registerFont(file) {
+  const name = file.name.replace(/[.][^.]+$/, '').replace(/[^a-zA-Z0-9_-]/g,'_');
+  const url = URL.createObjectURL(file);
+  const ff = new FontFace(name, 'url(' + url + ')');
+  ff.load().then(loaded => {
+    document.fonts.add(loaded);
+    const key = 'custom_' + name;
+    customFonts[key] = { stack: "'" + name + "',sans-serif", weight:'400' };
+    const sel = document.getElementById('fontSelect');
+    // Remove existing option with same key if reloading
+    const existing = sel.querySelector('option[value="' + key + '"]');
+    if (existing) existing.remove();
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = '★ ' + file.name.replace(/[.][^.]+$/,'');
+    sel.appendChild(opt);
+    sel.value = key;
+    selectedFont = key;
+    // Tag pill
+    const tags = document.getElementById('customFontTags');
+    const existing_tag = tags.querySelector('[data-key="' + key + '"]');
+    if (existing_tag) existing_tag.remove();
+    const tag = document.createElement('span');
+    tag.className = 'font-tag';
+    tag.dataset.key = key;
+    tag.innerHTML = file.name.replace(/[.][^.]+$/,'') + ' <button class="rm" title="Remove">×</button>';
+    tag.querySelector('.rm').addEventListener('click', () => {
+      delete customFonts[key];
+      const o = sel.querySelector('option[value="' + key + '"]');
+      if (o) o.remove();
+      if (sel.value === key) { sel.value = 'noto'; selectedFont = 'noto'; }
+      tag.remove();
+      cacheAll();
+      toast('Font removed');
+    });
+    tags.appendChild(tag);
+    cacheAll();
+    toast('Font loaded: ' + file.name.replace(/[.][^.]+$/,''));
+  }).catch(() => toast('Could not load font — check format'));
+}
+
+document.getElementById('fontFile').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(registerFont);
+  e.target.value = '';
+});
+
+const _fontDrop = document.getElementById('fontDrop');
+const _fontFile = document.getElementById('fontFile');
+_fontDrop.addEventListener('click', () => _fontFile.click());
+_fontDrop.addEventListener('dragover', e => { e.preventDefault(); _fontDrop.classList.add('over'); });
+_fontDrop.addEventListener('dragleave', () => _fontDrop.classList.remove('over'));
+_fontDrop.addEventListener('drop', e => {
+  e.preventDefault(); _fontDrop.classList.remove('over');
+  Array.from(e.dataTransfer.files)
+    .filter(f => /\.(ttf|otf|woff2?)$/i.test(f.name))
+    .forEach(registerFont);
+});
+
+document.getElementById('fontSelect').addEventListener('change',e=>{selectedFont=e.target.value;cacheAll();});
+document.getElementById('rFontSize').addEventListener('input',e=>{params.fontSize=parseInt(e.target.value);document.getElementById('vFontSize').textContent=params.fontSize;cacheAll();});
+document.getElementById('bgBlend').addEventListener('change',e=>{params.bgBlend=e.target.value;});
+
+function rWire(id,key,parse,vid,fmt) {
+  document.getElementById(id).addEventListener('input',e=>{
+    params[key]=parse(e.target.value);
+    if(vid) document.getElementById(vid).textContent=fmt?fmt(params[key]):params[key];
   });
 }
 rWire('rSpeed','animationSpeed',parseFloat,'vSpeed',v=>v.toFixed(1));
@@ -435,21 +957,22 @@ rWire('rRowOff','rowOffset',parseInt,'vRowOff',v=>v);
 rWire('rCols','columns',parseInt,'vCols',v=>v);
 rWire('rColOff','columnOffset',parseInt,'vColOff',v=>v);
 rWire('rEase','ease',parseFloat,'vEase',v=>v.toFixed(1));
+rWire('rOpacity','opacity',v=>parseInt(v)/100,'vOpacity',v=>Math.round(v*100)+'%');
+rWire('rBgOpacity','bgOpacity',v=>parseInt(v)/100,'vBgOpacity',v=>Math.round(v*100)+'%');
 
-document.getElementById('rTime').addEventListener('input', e => {
-  anim_time = parseFloat(e.target.value);
-  document.getElementById('vTime').textContent = Math.round(anim_time);
-  if (params.inputType === 'static') draw();
+document.getElementById('rTime').addEventListener('input',e=>{
+  anim_time=parseFloat(e.target.value);
+  document.getElementById('vTime').textContent=Math.round(anim_time);
+  if(params.inputType==='static') draw();
 });
 
-function wCol(inputId, bgId, valId, idx) {
-  document.getElementById(inputId).addEventListener('input', e => {
-    const v = e.target.value;
-    if (idx === -1) params.clr_bg = v;
-    else params.clrs[idx] = v;
-    const bg = document.getElementById(bgId);
-    if (bg) bg.style.background = v;
-    if (valId) document.getElementById(valId).textContent = v.slice(0,7);
+function wCol(inputId,bgId,valId,idx) {
+  document.getElementById(inputId).addEventListener('input',e=>{
+    const v=e.target.value;
+    if(idx===-1) params.clr_bg=v; else params.clrs[idx]=v;
+    const bg=document.getElementById(bgId);
+    if(bg) bg.style.background=v;
+    if(valId) document.getElementById(valId).textContent=v;
     cacheAll();
   });
 }
@@ -459,40 +982,127 @@ wCol('c2','sb2',null,1);
 wCol('c3','sb3',null,2);
 wCol('c4','sb4',null,3);
 
-['t1','t2','t3','t4'].forEach((id,i) => {
-  document.getElementById(id).addEventListener('input', e => {
-    params.type[i] = e.target.value;
-    cacheInput(i);
+['t1','t2','t3','t4'].forEach((id,i)=>{
+  document.getElementById(id).addEventListener('input',e=>{params.type[i]=e.target.value;cacheInput(i);});
+});
+
+// Per-slot X/Y/scale wiring
+for(let i=0;i<4;i++){
+  (function(idx){
+    document.getElementById('rSX'+idx).addEventListener('input',e=>{
+      params.slotOffsetX[idx]=parseInt(e.target.value);
+      document.getElementById('vSX'+idx).textContent=params.slotOffsetX[idx];
+      cacheInput(idx);
+    });
+    document.getElementById('rSY'+idx).addEventListener('input',e=>{
+      params.slotOffsetY[idx]=parseInt(e.target.value);
+      document.getElementById('vSY'+idx).textContent=params.slotOffsetY[idx];
+      cacheInput(idx);
+    });
+    document.getElementById('rSS'+idx).addEventListener('input',e=>{
+      params.slotScale[idx]=parseInt(e.target.value)/100;
+      document.getElementById('vSS'+idx).textContent=parseInt(e.target.value)+'%';
+      cacheInput(idx);
+    });
+  })(i);
+}
+
+// Slot accordion toggle
+document.querySelectorAll('.slot-hdr').forEach(hdr=>{
+  hdr.addEventListener('click',e=>{
+    if(e.target.tagName==='INPUT') return;
+    hdr.classList.toggle('open');
   });
 });
 
-document.querySelectorAll('.lb').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.lb').forEach(b => b.classList.remove('active'));
+document.querySelectorAll('.lb').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.lb').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    lang = btn.dataset.lang;
-    defaultTexts[lang].forEach((tx,i) => {
-      params.type[i] = tx;
-      document.getElementById('t'+(i+1)).value = tx;
+    lang=btn.dataset.lang;
+    const isForeign=lang!=='en';
+    document.getElementById('fontSelect').disabled=isForeign;
+    document.getElementById('fontSelect').style.opacity=isForeign?'0.4':'1';
+    defaultTexts[lang].forEach((tx,i)=>{
+      params.type[i]=tx;
+      document.getElementById('t'+(i+1)).value=tx;
     });
     cacheAll();
   });
 });
 
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const link = document.createElement('a');
-  link.download = 'accordion.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+document.querySelectorAll('.sp').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.sp').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    sizeMode=btn.dataset.mode;
+    applyCanvasSize();
+  });
 });
 
-window.addEventListener('resize', () => { resizeCanvas(); cacheAll(); });
+document.querySelectorAll('.pr').forEach(btn=>{
+  btn.addEventListener('click',()=>applyPreset(btn.dataset.preset));
+});
 
-// Init — wait for fonts to load before caching textures
-document.fonts.ready.then(() => {
-  resizeCanvas();
+document.getElementById('btnPlayPause').addEventListener('click',()=>{
+  anim_playing=!anim_playing;
+  document.getElementById('btnPlayPause').textContent=anim_playing?'⏸ Pause':'▶ Play';
+  toast(anim_playing?'Playing':'Paused');
+});
+
+document.getElementById('btnRandom').addEventListener('click',randomise);
+
+document.getElementById('savePng').addEventListener('click',()=>{
+  const link=document.createElement('a');
+  link.download='swing.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
+  toast('PNG saved');
+});
+document.getElementById('saveSeq').addEventListener('click',exportPNGSequence);
+
+// BG image upload
+document.getElementById('bgUpload').addEventListener('change',e=>{
+  if(e.target.files[0]) loadBgImage(e.target.files[0]);
+});
+document.getElementById('clearBg').addEventListener('click',()=>{
+  bgImage=null;
+  document.getElementById('bgImgRow').style.display='none';
+  document.getElementById('bgUpload').value='';
+  toast('Background cleared');
+});
+
+// Drag-drop image onto canvas
+canvasWrap.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dropOverlay').classList.add('active');});
+canvasWrap.addEventListener('dragleave',()=>document.getElementById('dropOverlay').classList.remove('active'));
+canvasWrap.addEventListener('drop',e=>{
+  e.preventDefault();
+  document.getElementById('dropOverlay').classList.remove('active');
+  const file=e.dataTransfer.files[0];
+  if(file&&file.type.startsWith('image/')) loadBgImage(file);
+});
+
+// ── KEYBOARD SHORTCUTS ────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(e.code==='Space'){
+    e.preventDefault();
+    document.getElementById('btnPlayPause').click();
+  }
+  if(e.code==='KeyR') randomise();
+  if(e.code==='KeyS'){
+    document.getElementById('savePng').click();
+  }
+});
+
+// ── RESIZE ────────────────────────────────────────────────────────────────
+window.addEventListener('resize',()=>{ if(sizeMode==='freeform') applyCanvasSize(); });
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+document.fonts.ready.then(()=>{
+  applyCanvasSize();
   cacheAll();
-  rafId = requestAnimationFrame(loop);
+  rafId=requestAnimationFrame(loop);
 });
 </script>
 </body>
